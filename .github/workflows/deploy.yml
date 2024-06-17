@@ -1,0 +1,33 @@
+name: Deploy Ghost Theme
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'  # This will trigger the workflow for tags like v1.0.0
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build theme
+        run: npm run build
+
+      - name: Compress theme
+        run: zip -r casper.zip .
+
+      - name: Deploy to Ghost
+        env:
+          GHOST_ADMIN_API_URL: ${{ secrets.GHOST_ADMIN_API_URL }}
+          GHOST_ADMIN_API_KEY: ${{ secrets.GHOST_ADMIN_API_KEY }}
+        run: |
+          curl -X POST \
+          -F "file=@casper.zip" \
+          "$GHOST_ADMIN_API_URL/ghost/api/v3/admin/themes/upload/" \
+          -H "Authorization: Ghost $GHOST_ADMIN_API_KEY"
