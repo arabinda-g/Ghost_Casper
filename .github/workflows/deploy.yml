@@ -13,12 +13,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: Install dependencies
-        run: npm install
-
-      - name: Build theme
-        run: npm run build
-
       - name: Compress theme
         run: zip -r casper.zip .
 
