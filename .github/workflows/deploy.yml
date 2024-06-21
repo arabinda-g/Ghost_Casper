@@ -13,15 +13,54 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests pyjwt
+
+      - name: Generate JWT token
+        id: generate_token
+        run: |
+          import requests
+          import jwt
+          from datetime import datetime as date
+          import os
+
+          # Admin API key
+          key = os.getenv('GHOST_ADMIN_API_KEY')
+
+          # Split the key into ID and SECRET
+          id, secret = key.split(':')
+
+          # Prepare header and payload
+          iat = int(date.now().timestamp())
+          header = {'alg': 'HS256', 'typ': 'JWT', 'kid': id}
+          payload = {
+              'iat': iat,
+              'exp': iat + 5 * 60,
+              'aud': '/admin/'
+          }
+
+          # Create the token (including decoding secret)
+          token = jwt.encode(payload, bytes.fromhex(secret), algorithm='HS256', headers=header)
+
+          # Print the token
+          print(f"::set-output name=token::{token}")
+
       - name: Compress theme
         run: zip -r casper.zip .
 
       - name: Deploy to Ghost
         env:
           GHOST_ADMIN_API_URL: ${{ secrets.GHOST_ADMIN_API_URL }}
-          GHOST_ADMIN_API_KEY: ${{ secrets.GHOST_ADMIN_API_KEY }}
+          GHOST_JWT_TOKEN: ${{ steps.generate_token.outputs.token }}
         run: |
           curl -X POST \
           -F "file=@casper.zip" \
-          "$GHOST_ADMIN_API_URL/ghost/api/admin/themes/upload/" \
-          -H "Authorization: Ghost $GHOST_ADMIN_API_KEY"
+          "$GHOST_ADMIN_API_URL/ghost/api/v3/admin/themes/upload/" \
+          -H "Authorization: Ghost $GHOST_JWT_TOKEN"
