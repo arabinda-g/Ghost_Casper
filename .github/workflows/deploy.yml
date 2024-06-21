@@ -23,5 +23,5 @@ jobs:
         run: |
           curl -X POST \
           -F "file=@casper.zip" \
-          "$GHOST_ADMIN_API_URL/ghost/api/v3/admin/themes/upload/" \
+          "$GHOST_ADMIN_API_URL/ghost/api/admin/themes/upload/" \
           -H "Authorization: Ghost $GHOST_ADMIN_API_KEY"
