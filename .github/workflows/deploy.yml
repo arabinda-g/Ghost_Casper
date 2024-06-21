@@ -26,31 +26,32 @@ jobs:
       - name: Generate JWT token
         id: generate_token
         run: |
-          import requests
-          import jwt
-          from datetime import datetime as date
-          import os
-
-          # Admin API key
-          key = os.getenv('GHOST_ADMIN_API_KEY')
-
-          # Split the key into ID and SECRET
-          id, secret = key.split(':')
-
-          # Prepare header and payload
-          iat = int(date.now().timestamp())
-          header = {'alg': 'HS256', 'typ': 'JWT', 'kid': id}
-          payload = {
-              'iat': iat,
-              'exp': iat + 5 * 60,
-              'aud': '/admin/'
-          }
-
-          # Create the token (including decoding secret)
-          token = jwt.encode(payload, bytes.fromhex(secret), algorithm='HS256', headers=header)
-
-          # Print the token
-          print(f"::set-output name=token::{token}")
+          echo "import requests" > generate_jwt.py
+          echo "import jwt" >> generate_jwt.py
+          echo "from datetime import datetime as date" >> generate_jwt.py
+          echo "import os" >> generate_jwt.py
+          echo "" >> generate_jwt.py
+          echo "# Admin API key" >> generate_jwt.py
+          echo "key = os.getenv('GHOST_ADMIN_API_KEY')" >> generate_jwt.py
+          echo "" >> generate_jwt.py
+          echo "# Split the key into ID and SECRET" >> generate_jwt.py
+          echo "id, secret = key.split(':')" >> generate_jwt.py
+          echo "" >> generate_jwt.py
+          echo "# Prepare header and payload" >> generate_jwt.py
+          echo "iat = int(date.now().timestamp())" >> generate_jwt.py
+          echo "header = {'alg': 'HS256', 'typ': 'JWT', 'kid': id}" >> generate_jwt.py
+          echo "payload = {" >> generate_jwt.py
+          echo "    'iat': iat," >> generate_jwt.py
+          echo "    'exp': iat + 5 * 60," >> generate_jwt.py
+          echo "    'aud': '/admin/'" >> generate_jwt.py
+          echo "}" >> generate_jwt.py
+          echo "" >> generate_jwt.py
+          echo "# Create the token (including decoding secret)" >> generate_jwt.py
+          echo "token = jwt.encode(payload, bytes.fromhex(secret), algorithm='HS256', headers=header)" >> generate_jwt.py
+          echo "" >> generate_jwt.py
+          echo "# Print the token" >> generate_jwt.py
+          echo "print(f'::set-output name=token::{token}')" >> generate_jwt.py
+          python generate_jwt.py
 
       - name: Compress theme
         run: zip -r casper.zip .
@@ -62,5 +63,5 @@ jobs:
         run: |
           curl -X POST \
           -F "file=@casper.zip" \
-          "$GHOST_ADMIN_API_URL/ghost/api/v3/admin/themes/upload/" \
+          "$GHOST_ADMIN_API_URL/ghost/api/admin/themes/upload/" \
           -H "Authorization: Ghost $GHOST_JWT_TOKEN"
