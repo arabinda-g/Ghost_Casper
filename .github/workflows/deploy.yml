@@ -23,10 +23,8 @@ jobs:
 
       - name: Zip theme directory
         run: |
-          THEME_DIR="/"
           THEME_ZIP="theme.zip"
-          cd $THEME_DIR
-          zip -r ../$THEME_ZIP ./*
+          zip -r $THEME_ZIP ./*
         shell: bash
 
       - name: Deploy theme
